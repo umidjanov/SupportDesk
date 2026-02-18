@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 /* ─── SEED USERS ──────────────────────────────────────────────────────────── */
 export const SEED_USERS = [
   {
-    id: "u1", name: "Aziza Karimova",   phone: "93-111-11-11",
-    password: "Aziza",    role: "support", avatar: "AK", color: "#3d5eff",
+    id: "u1", name: "Fayzulloh Umidjonov",   phone: "974646162",
+    password: "Fayzulloh",    role: "support", avatar: "AK", color: "#3d5eff",
     joinDate: "01.01.2026",
   },
   {
