@@ -14,7 +14,6 @@ Getting started
 3) Run:
    - npm run dev
    - Server on http://localhost:5050
-
 Configuration (optional .env)
 - PORT=5050
 - CORS_ORIGINS=http://localhost:5173
