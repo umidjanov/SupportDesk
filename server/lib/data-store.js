@@ -31,13 +31,41 @@ export class DataStore {
   constructor() {
     this.records = []
     this.nextId = 1
+    this.loadedFrom = null
   }
 
   get size() { return this.records.length }
   getAll() { return [...this.records] }
 
   async loadFromExcel(excelPath) {
-    const full = path.resolve(process.cwd(), 'server', excelPath.startsWith('.') ? excelPath : `./${excelPath}`)
+    const requested = excelPath || './data/TA-otchet.xlsx'
+    const normalizedRequested = requested.startsWith('.') ? requested : `./${requested}`
+
+    // Enforce exact filename casing (Linux is case-sensitive).
+    if (path.basename(normalizedRequested) !== 'TA-otchet.xlsx') {
+      throw new Error(`Excel filename must be exactly "TA-otchet.xlsx" (got "${path.basename(normalizedRequested)}")`)
+    }
+
+    // Support starting the server from repo root OR from ./server
+    const candidates = [
+      path.resolve(process.cwd(), normalizedRequested),
+      path.resolve(process.cwd(), 'server', normalizedRequested),
+    ]
+
+    let full = null
+    for (const c of candidates) {
+      try {
+        await fs.access(c)
+        full = c
+        break
+      } catch {
+        // try next
+      }
+    }
+    if (!full) {
+      throw new Error(`Excel file not found. Looked for: ${candidates.join(' | ')}`)
+    }
+
     const buf = await fs.readFile(full)
     const wb = XLSX.read(buf, { type: 'buffer' })
 
@@ -51,6 +79,7 @@ export class DataStore {
         if (!n.student) continue
         all.push({
           id: String(this.nextId++),
+          supportName: n.supportname || n.support || '',
           date: n.date || '',
           time: n.time || '',
           mentor: n.mentor || '',
@@ -62,6 +91,7 @@ export class DataStore {
       }
     }
     this.records = all
+    this.loadedFrom = full
     return this.records
   }
 

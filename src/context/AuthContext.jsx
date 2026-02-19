@@ -3,11 +3,26 @@ import { apiLogin, apiRegister } from "../api/mockApi";
 
 const AuthContext = createContext(null);
 
-const SESSION_KEY = "sd_session";
+const SESSION_INDEX_KEY = "sd_sess_idx";
+function getSessionIndex() {
+  try {
+    let idx = sessionStorage.getItem(SESSION_INDEX_KEY);
+    if (!idx) {
+      idx = Math.random().toString(36).slice(2, 10);
+      sessionStorage.setItem(SESSION_INDEX_KEY, idx);
+    }
+    return idx;
+  } catch {
+    return Math.random().toString(36).slice(2, 10);
+  }
+}
+function getSessionKey() {
+  return `sd_session:${getSessionIndex()}`;
+}
 
 function getSession() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY));
+    return JSON.parse(sessionStorage.getItem(getSessionKey()));
   } catch {
     return null;
   }
@@ -23,9 +38,11 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const u = await apiLogin(phone, password);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(u));
-      setUser(u);
-      return u;
+      // If server returns token, persist it alongside user; else store user only
+      const payload = typeof u === 'object' && u !== null ? u : { user: u };
+      sessionStorage.setItem(getSessionKey(), JSON.stringify(payload));
+      setUser(payload);
+      return payload;
     } catch (e) {
       setError(e.message);
       throw e;
@@ -39,9 +56,10 @@ export function AuthProvider({ children }) {
     setError("");
     try {
       const u = await apiRegister(data);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(u));
-      setUser(u);
-      return u;
+      const payload = typeof u === 'object' && u !== null ? u : { user: u };
+      sessionStorage.setItem(getSessionKey(), JSON.stringify(payload));
+      setUser(payload);
+      return payload;
     } catch (e) {
       setError(e.message);
       throw e;
@@ -51,7 +69,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+    try { sessionStorage.removeItem(getSessionKey()); } catch {}
     setUser(null);
   }, []);
 
