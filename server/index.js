@@ -24,7 +24,7 @@ async function bootstrap() {
   // Initialize auth and data
   const auth = new Auth()
   const store = new DataStore()
-  await store.loadFromExcel(process.env.EXCEL_PATH || './data/TA-otchet.xlsx')
+  await store.loadFromExcel(process.env.EXCEL_PATH || './data/.xlsx')
 
   // Health
   app.get('/health', (_req, res) => res.json({ ok: true, records: store.size }))
