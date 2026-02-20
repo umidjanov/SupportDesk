@@ -19,7 +19,7 @@ export const SEED_USERS = [
   },
   {
     id: "u4", name: "Davron Yusupov",   phone: "93-444-44-44",
-    password: "Davron",   role: "support", avatar: "DY", color: "#7c3aed",
+    password: " ",   role: "support", avatar: "DY", color: "#7c3aed",
     joinDate: "01.01.2026",
   },
   {
