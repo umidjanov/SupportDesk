@@ -10,6 +10,7 @@ import {
   Skeleton,
 } from "../../components/ui";
 import { todayString, statusLabel } from "../../utils/helpers";
+import { Link } from "react-router-dom";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -35,13 +36,15 @@ export default function HomePage() {
           color="#3d5eff"
           delay={0}
         />
-        <StatCard
-          icon="🎓"
-          label="Jami yozuvlar"
-          value={records.length}
-          color="#059669"
-          delay={60}
-        />
+        <Link to="/curator/logs">
+          <StatCard
+            icon="🎓"
+            label="Jami yozuvlar"
+            value={records.length}
+            color="#059669"
+            delay={60}
+          />
+        </Link>
         <StatCard
           icon="📅"
           label="Bugungi yozuvlar"

@@ -1,19 +1,23 @@
 import { useState, useEffect } from "react";
 import { useData } from "../../context/DataContext";
-import { PageHeader, Card, Badge, Select } from "../../components/ui";
+import { PageHeader, Card, Badge } from "../../components/ui";
 import RecordsTable from "../../components/tables/RecordsTable";
 import { apiGetRecords } from "../../api/mockApi";
 import { GROUPS } from "../../api/mockApi";
 
 export default function CuratorLogsPage() {
   const { supportUsers } = useData();
+
   const [records, setRecords] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const [filterSupport, setFilterSupport] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterGroup, setFilterGroup] = useState("");
   const [search, setSearch] = useState("");
 
+  // 🔥 Filterlangan yozuvlarni yuklash
   async function load() {
     setLoading(true);
     try {
@@ -29,9 +33,19 @@ export default function CuratorLogsPage() {
     }
   }
 
+  // 🔥 Database dagi jami yozuvlar soni
+  async function loadTotalCount() {
+    const all = await apiGetRecords(); // filterlarsiz
+    setTotalCount(all.length);
+  }
+
   useEffect(() => {
     load();
   }, [filterSupport, filterDate, filterGroup, search]);
+
+  useEffect(() => {
+    loadTotalCount();
+  }, []);
 
   const hasFilter = filterSupport || filterDate || filterGroup || search;
 
@@ -41,6 +55,30 @@ export default function CuratorLogsPage() {
         title="Barcha Yozuvlar"
         subtitle="Barcha support teacherlarning yozuvlari — filterlash imkoniyati bilan"
       />
+
+      {/* 🔥 JAMI YOZUVLAR CARD */}
+      <div className="mb-5">
+        <Card padding="p-5" className="animate-fade-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <p
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "var(--text-3)" }}
+              >
+                📊 Jami berilgan yordamlar soni
+              </p>
+              <h2
+                className="text-3xl font-bold mt-1"
+                style={{ color: "var(--text-1)" }}
+              >
+                {totalCount}
+              </h2>
+            </div>
+
+            <Badge variant="blue">{records.length} ko‘rsatilmoqda</Badge>
+          </div>
+        </Card>
+      </div>
 
       {/* Filter bar */}
       <Card className="mb-5 animate-fade-up" padding="p-5">
@@ -124,6 +162,7 @@ export default function CuratorLogsPage() {
             <p className="text-xs" style={{ color: "var(--text-3)" }}>
               Faol filtrlar:
             </p>
+
             {filterSupport && (
               <Badge variant="blue">
                 {
@@ -133,9 +172,11 @@ export default function CuratorLogsPage() {
                 }
               </Badge>
             )}
+
             {filterDate && <Badge variant="amber">📅 {filterDate}</Badge>}
             {filterGroup && <Badge variant="cyan">{filterGroup}</Badge>}
             {search && <Badge variant="gray">"{search}"</Badge>}
+
             <button
               onClick={() => {
                 setFilterSupport("");
@@ -148,7 +189,6 @@ export default function CuratorLogsPage() {
             >
               ✕ Tozalash
             </button>
-            <Badge variant="gray">{records.length} natija</Badge>
           </div>
         )}
       </Card>

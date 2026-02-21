@@ -1,48 +1,74 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MENTORS, GROUPS, STATUSES, THEMES } from "../../api/mockApi";
 import { todayString, nowTimeString } from "../../utils/helpers";
-import { Input, Select, Button } from "../ui";
+import { Input, Button } from "../ui";
 
 const EMPTY_FORM = {
-  date:    "",
-  time:    "",
-  group:   "",
-  mentor:  "",
+  date: "",
+  time: "",
+  group: "",
+  mentor: "",
   student: "",
-  theme:   "",
-  status:  "",
+  theme: "",
+  status: "",
 };
 
 function validate(form) {
   const errors = {};
-  if (!form.date.trim())    errors.date    = "Sanani kiriting";
-  if (!form.time.trim())    errors.time    = "Vaqtni kiriting";
-  if (!form.group)          errors.group   = "Guruhni tanlang";
-  if (!form.mentor)         errors.mentor  = "Mentorni tanlang";
+  if (!form.date.trim()) errors.date = "Sanani kiriting";
+  if (!form.time.trim()) errors.time = "Vaqtni kiriting";
+  if (!form.group) errors.group = "Guruhni tanlang";
+  if (!form.mentor) errors.mentor = "Mentorni tanlang";
   if (!form.student.trim()) errors.student = "O'quvchi ismini kiriting";
-  if (!form.theme)          errors.theme   = "Mavzuni tanlang";
-  if (!form.status)         errors.status  = "Statusni tanlang";
+  if (!form.theme) errors.theme = "Mavzuni tanlang";
+  if (!form.status) errors.status = "Statusni tanlang";
   return errors;
 }
 
 export default function StudentForm({ initial, onSubmit, onCancel, loading }) {
-  const [form,   setForm]   = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
+
+  const [showGroupList, setShowGroupList] = useState(false);
+  const [showMentorList, setShowMentorList] = useState(false);
+  const [showThemeList, setShowThemeList] = useState(false);
 
   useEffect(() => {
     if (initial) setForm(initial);
     else setForm({ ...EMPTY_FORM, date: todayString(), time: nowTimeString() });
   }, [initial]);
 
-  function set(k, v) {
-    setForm(f => ({ ...f, [k]: v }));
-    setErrors(e => ({ ...e, [k]: "" }));
+  function setField(k, v) {
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((e) => ({ ...e, [k]: "" }));
   }
+
+  // 🔥 Filter functions
+  const filteredGroups = useMemo(() => {
+    return GROUPS.filter((g) =>
+      g.toLowerCase().includes(form.group.toLowerCase()),
+    );
+  }, [form.group]);
+
+  const filteredMentors = useMemo(() => {
+    return MENTORS.filter((m) =>
+      m.toLowerCase().includes(form.mentor.toLowerCase()),
+    );
+  }, [form.mentor]);
+
+  const filteredThemes = useMemo(() => {
+    return THEMES.filter((t) =>
+      t.toLowerCase().includes(form.theme.toLowerCase()),
+    );
+  }, [form.theme]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate(form);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     await onSubmit({ ...form, student: form.student.trim() });
   }
 
@@ -51,108 +77,155 @@ export default function StudentForm({ initial, onSubmit, onCancel, loading }) {
       {/* Date & Time */}
       <div className="grid grid-cols-2 gap-4">
         <Input
+          type="date"
           label="📅 Sana"
-          placeholder="19.02.2026"
           value={form.date}
-          onChange={e => set("date", e.target.value)}
+          onChange={(e) => setField("date", e.target.value)}
           error={errors.date}
-          hint="Masalan: 19.02.2026"
         />
         <Input
           label="⏰ Vaqt"
           type="time"
           value={form.time}
-          onChange={e => set("time", e.target.value)}
+          onChange={(e) => setField("time", e.target.value)}
           error={errors.time}
         />
       </div>
 
-      {/* Group & Mentor */}
+      {/* GROUP & MENTOR */}
       <div className="grid grid-cols-2 gap-4">
-        <Select
-          label="👥 Guruh"
-          options={GROUPS}
-          placeholder="— Guruhni tanlang —"
-          value={form.group}
-          onChange={e => set("group", e.target.value)}
-          error={errors.group}
-        />
-        <Select
-          label="👩‍🏫 Mentor"
-          options={MENTORS}
-          placeholder="— Mentorni tanlang —"
-          value={form.mentor}
-          onChange={e => set("mentor", e.target.value)}
-          error={errors.mentor}
-        />
+        {/* GROUP */}
+        <div className="relative">
+          <Input
+            placeholder="Guruh raqami"
+            label="👥 Guruh"
+            value={form.group}
+            onChange={(e) => {
+              setField("group", e.target.value);
+              setShowGroupList(true);
+            }}
+            onFocus={() => setShowGroupList(true)}
+            error={errors.group}
+          />
+          {showGroupList && filteredGroups.length > 0 && (
+            <div className="absolute z-20 w-full bg-white border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+              {filteredGroups.map((g) => (
+                <div
+                  key={g}
+                  onClick={() => {
+                    setField("group", g);
+                    setShowGroupList(false);
+                  }}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                >
+                  {g}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* MENTOR */}
+        <div className="relative">
+          <Input
+            placeholder="Mentor ismi"
+            label="👩‍🏫 Mentor"
+            value={form.mentor}
+            onChange={(e) => {
+              setField("mentor", e.target.value);
+              setShowMentorList(true);
+            }}
+            onFocus={() => setShowMentorList(true)}
+            error={errors.mentor}
+          />
+          {showMentorList && filteredMentors.length > 0 && (
+            <div className="absolute z-20 w-full bg-white border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+              {filteredMentors.map((m) => (
+                <div
+                  key={m}
+                  onClick={() => {
+                    setField("mentor", m);
+                    setShowMentorList(false);
+                  }}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                >
+                  {m}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Student */}
+      {/* STUDENT */}
       <Input
+        placeholder="O'quvchining ism familiyasi"
         label="🎓 O'quvchi ismi familiyasi"
-        placeholder="Masalan: Mahliyo Xudoyberdiyeva"
         value={form.student}
-        onChange={e => set("student", e.target.value)}
+        onChange={(e) => setField("student", e.target.value)}
         error={errors.student}
       />
 
-      {/* Theme */}
-      <Select
-        label="📚 Mavzu (Theme)"
-        options={THEMES}
-        placeholder="— Mavzuni tanlang —"
-        value={form.theme}
-        onChange={e => set("theme", e.target.value)}
-        error={errors.theme}
-      />
+      {/* 🔥 THEME AUTOCOMPLETE */}
+      <div className="relative">
+        <Input
+          placeholder="Mavzuni tanlang"
+          label="📚 Mavzu (Theme)"
+          value={form.theme}
+          onChange={(e) => {
+            setField("theme", e.target.value);
+            setShowThemeList(true);
+          }}
+          onFocus={() => setShowThemeList(true)}
+          error={errors.theme}
+        />
+        {showThemeList && filteredThemes.length > 0 && (
+          <div className="absolute z-20 w-full bg-white border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+            {filteredThemes.map((t) => (
+              <div
+                key={t}
+                onClick={() => {
+                  setField("theme", t);
+                  setShowThemeList(false);
+                }}
+                className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+              >
+                {t}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Status */}
+      {/* STATUS */}
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: "var(--text-3)" }}>
-          📍 Status — Qayerda o'tildi?
+        <label className="text-xs font-semibold uppercase tracking-wider block mb-2">
+          📍 Status
         </label>
         <div className="flex gap-3">
-          {STATUSES.map(s => (
+          {STATUSES.map((s) => (
             <button
               key={s}
               type="button"
-              onClick={() => set("status", s)}
-              className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border-2"
-              style={{
-                background: form.status === s ? (s === "coworking" ? "rgba(61,94,255,.08)" : "rgba(5,150,105,.08)") : "var(--bg-2)",
-                borderColor: form.status === s ? (s === "coworking" ? "var(--brand)" : "#059669") : "var(--border)",
-                color: form.status === s ? (s === "coworking" ? "var(--brand)" : "#059669") : "var(--text-2)",
-              }}
+              onClick={() => setField("status", s)}
+              className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 ${
+                form.status === s
+                  ? "bg-blue-50 border-blue-500 text-blue-600"
+                  : "bg-gray-50 border-gray-200"
+              }`}
             >
               {s === "coworking" ? "🏢 Coworking" : "👥 Group"}
             </button>
           ))}
         </div>
-        {errors.status && <p className="text-xs text-red-500 mt-1">{errors.status}</p>}
+        {errors.status && (
+          <p className="text-xs text-red-500 mt-1">{errors.status}</p>
+        )}
       </div>
 
-      {/* Preview */}
-      {form.student && form.group && form.mentor && (
-        <div
-          className="rounded-xl p-4 animate-fade-in"
-          style={{ background: "var(--bg-2)", border: "1px solid var(--border-2)" }}
-        >
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--brand)" }}>
-            Ko'rib chiqish
-          </p>
-          <div className="grid grid-cols-3 gap-2 text-xs" style={{ color: "var(--text-2)" }}>
-            <div><span style={{ color: "var(--text-3)" }}>Sana:</span><br /><strong>{form.date} {form.time}</strong></div>
-            <div><span style={{ color: "var(--text-3)" }}>Guruh:</span><br /><strong>{form.group}</strong></div>
-            <div><span style={{ color: "var(--text-3)" }}>Status:</span><br /><strong>{form.status}</strong></div>
-            <div className="col-span-2"><span style={{ color: "var(--text-3)" }}>O'quvchi:</span><br /><strong>{form.student}</strong></div>
-            <div><span style={{ color: "var(--text-3)" }}>Mentor:</span><br /><strong>{form.mentor?.split(" ")[0]}</strong></div>
-          </div>
-        </div>
-      )}
-
-      {/* Actions */}
+      {/* ACTIONS */}
       <div className="flex gap-3 pt-2">
-        <Button type="submit" variant="primary" loading={loading} className="flex-1">
+        <Button type="submit" loading={loading} className="flex-1">
           {initial ? "💾 Saqlash" : "✅ Qo'shish"}
         </Button>
         {onCancel && (
