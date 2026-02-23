@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useData } from "../../context/DataContext";
 import {
   PageHeader,
@@ -14,6 +14,8 @@ export default function NotificationsPage() {
   const { notifs, loadingNotif, markAllSeen, unseenCount, fetchNotifs } =
     useData();
 
+  const [filterSupport, setFilterSupport] = useState("");
+
   useEffect(() => {
     fetchNotifs();
   }, []);
@@ -22,8 +24,22 @@ export default function NotificationsPage() {
     await markAllSeen();
   }
 
-  const newNotifs = notifs.filter((n) => !n.seen);
-  const seenNotifs = notifs.filter((n) => n.seen);
+  // Filterlangan notifikatsiyalar
+  const filteredNotifs = filterSupport
+    ? notifs.filter((n) =>
+        (n.supportName || "")
+          .toLowerCase()
+          .includes(filterSupport.toLowerCase()),
+      )
+    : notifs;
+
+  const newNotifs = filteredNotifs.filter((n) => !n.seen);
+  const seenNotifs = filteredNotifs.filter((n) => n.seen);
+
+  // Supportlarning noyob ismlari
+  const supportNames = [
+    ...new Set(notifs.map((n) => n.supportName).filter(Boolean)),
+  ];
 
   return (
     <div>
@@ -43,6 +59,36 @@ export default function NotificationsPage() {
         }
       />
 
+      {/* Filter tugmalari */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Button
+          size="sm"
+          variant={filterSupport === "" ? "filled" : "outline"}
+          className={filterSupport === "" ? "bg-indigo-600 text-white" : ""}
+          onClick={() => setFilterSupport("")}
+        >
+          Barchasi ({notifs.length})
+        </Button>
+
+        {supportNames.map((name) => {
+          const count = notifs.filter((n) => n.supportName === name).length;
+
+          return (
+            <Button
+              key={name}
+              size="sm"
+              variant={filterSupport === name ? "filled" : "outline"}
+              className={
+                filterSupport === name ? "bg-indigo-600 text-white" : ""
+              }
+              onClick={() => setFilterSupport(name)}
+            >
+              {name} ({count})
+            </Button>
+          );
+        })}
+      </div>
+
       {loadingNotif ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -53,17 +99,21 @@ export default function NotificationsPage() {
             />
           ))}
         </div>
-      ) : notifs.length === 0 ? (
+      ) : filteredNotifs.length === 0 ? (
         <Card>
           <EmptyState
             icon="🔕"
             title="Hali bildirishnoma yo'q"
-            desc="Support teacherlar yozuv qo'shganda bu yerda ko'rinadi."
+            desc={
+              filterSupport
+                ? "Bu support hali hech qanday yozuv qo'shmagan."
+                : "Support teacherlar yozuv qo'shganda bu yerda ko'rinadi."
+            }
           />
         </Card>
       ) : (
         <div className="space-y-6">
-          {/* New */}
+          {/* Yangi */}
           {newNotifs.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -83,7 +133,7 @@ export default function NotificationsPage() {
             </div>
           )}
 
-          {/* Seen */}
+          {/* Ko'rilgan */}
           {seenNotifs.length > 0 && (
             <div>
               <p
@@ -106,6 +156,14 @@ export default function NotificationsPage() {
 }
 
 function NotifCard({ notif: n, isNew = false }) {
+  const supportName = n.supportName || "Noma'lum";
+
+  const initials = supportName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2);
+
   return (
     <div
       className="card p-5 flex items-start gap-4 animate-fade-in"
@@ -114,44 +172,47 @@ function NotifCard({ notif: n, isNew = false }) {
         borderColor: isNew ? "rgba(61,94,255,.2)" : "var(--border)",
       }}
     >
-      <Avatar
-        initials={n.supportName
-          .split(" ")
-          .map((w) => w[0])
-          .join("")
-          .slice(0, 2)}
-        color="#3d5eff"
-        size={44}
-      />
+      <Avatar initials={initials} color="#3d5eff" size={44} />
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <p
             className="font-semibold text-sm"
             style={{ color: "var(--text-1)" }}
           >
-            {n.supportName}
+            {supportName}
           </p>
           <p className="text-sm" style={{ color: "var(--text-3)" }}>
             yangi yozuv qo'shdi
           </p>
           {isNew && <div className="notif-dot" />}
         </div>
+
         <div className="flex flex-wrap gap-2 mt-2">
           <Badge variant="blue">{n.group}</Badge>
+
           <span
             className="text-xs px-2.5 py-1 rounded-lg font-medium"
-            style={{ background: "var(--bg-2)", color: "var(--text-2)" }}
+            style={{
+              background: "var(--bg-2)",
+              color: "var(--text-2)",
+            }}
           >
             {n.student}
           </span>
+
           <span
             className="text-xs px-2.5 py-1 rounded-lg font-medium"
-            style={{ background: "var(--bg-2)", color: "var(--text-2)" }}
+            style={{
+              background: "var(--bg-2)",
+              color: "var(--text-2)",
+            }}
           >
             📚 {n.theme}
           </span>
         </div>
       </div>
+
       <p
         className="text-xs whitespace-nowrap shrink-0"
         style={{ color: "var(--text-3)" }}

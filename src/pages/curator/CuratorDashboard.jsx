@@ -50,7 +50,7 @@ export default function CuratorDashboard() {
           },
         },
         xaxis: {
-          categories: supportStats.map((s) => s.name.split(" ")[0]),
+          categories: supportStats.map((s) => (s.name || "User").split(" ")[0]),
           labels: {
             style: {
               colors: "#616161",
@@ -138,10 +138,7 @@ export default function CuratorDashboard() {
               Ma'lumot yo'q
             </p>
           ) : (
-            <Chart
-              key={records.length} // 🔥 har yangi yozuvda re-render majburiy
-              {...chartConfig}
-            />
+            <Chart key={records.length} {...chartConfig} />
           )}
         </Card>
       </div>
@@ -168,7 +165,7 @@ export default function CuratorDashboard() {
                 }}
               >
                 <Avatar
-                  initials={n.supportName
+                  initials={(n.supportName || "User")
                     .split(" ")
                     .map((w) => w[0])
                     .join("")
@@ -181,7 +178,7 @@ export default function CuratorDashboard() {
                     className="text-sm font-semibold"
                     style={{ color: "var(--text-1)" }}
                   >
-                    {n.supportName.split(" ")[0]} yozuv qo'shdi
+                    {(n.supportName || "User").split(" ")[0]} yozuv qo'shdi
                   </p>
                   <p className="text-xs" style={{ color: "var(--text-3)" }}>
                     {n.student} · {n.group} · {n.theme}

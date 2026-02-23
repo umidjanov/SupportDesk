@@ -15,6 +15,9 @@ import MyLogsPage from "./pages/support/MyLogsPage";
 import CuratorDashboard from "./pages/curator/CuratorDashboard";
 import CuratorLogsPage from "./pages/curator/CuratorLogsPage";
 import NotificationsPage from "./pages/curator/NotificationsPage";
+import { CuratorGroups } from "./pages/curator/CuratorGroups";
+import { SupportGroups } from "./pages/support/SupportGroups";
+import { CuratorSupports } from "./pages/curator/CuratorSupports";
 
 export default function App() {
   return (
@@ -53,12 +56,15 @@ export default function App() {
                   <Route path="/dashboard" element={<SupportDashboard />} />
                   <Route path="/dashboard/add" element={<AddRecordPage />} />
                   <Route path="/dashboard/logs" element={<MyLogsPage />} />
+                  <Route path="/dashboard/groups" element={<SupportGroups />} />
                 </Route>
 
                 {/* Curator only */}
                 <Route element={<ProtectedRoute allowedRoles={["curator"]} />}>
                   <Route path="/curator" element={<CuratorDashboard />} />
                   <Route path="/curator/logs" element={<CuratorLogsPage />} />
+                  <Route path="/curator/groups" element={<CuratorGroups />} />
+                  <Route path="/curator/supports" element={<CuratorSupports />} />
                   <Route
                     path="/curator/notifs"
                     element={<NotificationsPage />}

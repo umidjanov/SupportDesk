@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Input, Button } from "../../components/ui";
-import { SEED_USERS } from "../../api/mockApi";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
@@ -13,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [showDemo, setShowDemo] = useState(false);
+  const [demoUsers, setDemoUsers] = useState([]);
 
   function validate() {
     const e = {};
@@ -36,13 +36,19 @@ export default function LoginPage() {
 
   function fillDemo(u) {
     setPhone(u.phone);
-    setPassword(u.password);
+    setPassword(u.password || ""); // demo password bo'lmasa bo'sh qoldiramiz
     setErrors({});
   }
 
+  useEffect(() => {
+    const lastRegistered = localStorage.getItem("lastRegisteredUser");
+    if (lastRegistered) {
+      setDemoUsers([JSON.parse(lastRegistered)]);
+    }
+  }, []);
+
   return (
     <div className="auth-page">
-      {/* Decorative circles */}
       <div
         className="absolute top-20 left-20 w-64 h-64 rounded-full opacity-30 pointer-events-none"
         style={{
@@ -59,7 +65,6 @@ export default function LoginPage() {
       />
 
       <div className="w-full max-w-md relative z-10 animate-fade-up px-4">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div
             className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center font-display font-black text-2xl text-white"
@@ -81,7 +86,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Card */}
         <div className="card p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
@@ -130,80 +134,57 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Demo credentials */}
-        <div className="mt-4">
-          <button
-            onClick={() => setShowDemo(!showDemo)}
-            className="w-full text-center text-xs cursor-pointer transition-fast py-2 rounded-xl hover:bg-white/50"
-            style={{ color: "var(--text-3)" }}
-          >
-            {showDemo
-              ? "▲ Demo loginlarni yashirish"
-              : "▼ Demo loginlarni ko'rish"}
-          </button>
+        {/* Demo foydalanuvchi */}
+        {demoUsers.length > 0 && (
+          <div className="mt-4">
+            <button
+              onClick={() => setShowDemo(!showDemo)}
+              className="w-full text-center text-xs cursor-pointer transition-fast py-2 rounded-xl hover:bg-white/50"
+              style={{ color: "var(--text-3)" }}
+            >
+              {showDemo ? "▲ Demo loginni yashirish" : "▼ Demo loginni ko'rish"}
+            </button>
 
-          {showDemo && (
-            <div className="mt-2 card overflow-hidden animate-fade-up">
-              <div
-                className="px-4 py-2.5"
-                style={{
-                  background: "var(--bg-2)",
-                  borderBottom: "1px solid var(--border)",
-                }}
-              >
-                <p
-                  className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: "var(--text-3)" }}
-                >
-                  Demo foydalanuvchilar — bosib to'ldiring
-                </p>
-              </div>
-              {SEED_USERS.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => fillDemo(u)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-fast cursor-pointer text-left"
-                  style={{ borderBottom: "1px solid var(--border)" }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-                      style={{ background: u.color }}
-                    >
-                      {u.avatar}
-                    </div>
-                    <div>
-                      <p
-                        className="text-sm font-semibold"
-                        style={{ color: "var(--text-1)" }}
-                      >
-                        {u.name}
-                      </p>
-                      <p className="text-xs" style={{ color: "var(--text-3)" }}>
-                        {u.phone}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className="badge"
-                    style={{
-                      background:
-                        u.role === "curator"
-                          ? "rgba(245,158,11,.1)"
-                          : "rgba(61,94,255,.1)",
-                      color:
-                        u.role === "curator"
-                          ? "var(--warning)"
-                          : "var(--brand)",
-                    }}
+            {showDemo && (
+              <div className="mt-2 card overflow-hidden animate-fade-up">
+                <div className="px-4 py-2.5 border-b bg-gray-100">
+                  <p className="text-xs font-semibold uppercase tracking-wider">
+                    Oxirgi ro'yxatdan o'tgan foydalanuvchi
+                  </p>
+                </div>
+                {demoUsers.map((u, i) => (
+                  <button
+                    key={i}
+                    onClick={() => fillDemo(u)}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer text-left border-b"
                   >
-                    {u.role}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+                        style={{ background: u.color }}
+                      >
+                        {u.avatar}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{u.name}</p>
+                        <p className="text-xs text-gray-500">{u.phone}</p>
+                      </div>
+                    </div>
+                    <span
+                      className="badge"
+                      style={{
+                        background: "rgba(61,94,255,.1)",
+                        color: "var(--brand)",
+                      }}
+                    >
+                      {u.role}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

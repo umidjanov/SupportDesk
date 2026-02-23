@@ -7,12 +7,15 @@ const SUPPORT_NAV = [
   { to: "/dashboard", icon: "⊞", label: "Dashboard" },
   { to: "/dashboard/add", icon: "＋", label: "Yangi yozuv" },
   { to: "/dashboard/logs", icon: "☰", label: "Mening yozuvlarim" },
+  { to: "/dashboard/groups", icon: "👥", label: "Guruhlar" },
 ];
 
 const CURATOR_NAV = [
   { to: "/curator", icon: "⊞", label: "Umumiy panel" },
   { to: "/curator/logs", icon: "☰", label: "Barcha yozuvlar" },
   { to: "/curator/notifs", icon: "🔔", label: "Bildirishnomalar" },
+  { to: "/curator/groups", icon: "👥", label: "Guruhlar" },
+  { to: "/curator/supports", icon: "👨‍🏫", label: "Supportlar" },
 ];
 
 const COMMON_NAV = [{ to: "/home", icon: "🏠", label: "Bosh sahifa" }];
