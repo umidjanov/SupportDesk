@@ -115,8 +115,8 @@ export default function MyLogsPage() {
           <StudentForm
             initial={editRec}     
             onSubmit={handleUpdate}
-            onCancel={() => setEditRec(null)}
-            loading={updating}
+            onCancel={() => setEditRec(null)}    
+            loading={updating}   
           />
         )}
       </Modal>

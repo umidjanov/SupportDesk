@@ -13,7 +13,7 @@ import { todayString, statusLabel } from "../../utils/helpers";
 import { Link } from "react-router-dom";
 
 // Animated counter component
-function AnimatedCounter({ value, duration = 500 }) {
+function AnimatedCounter({ value, duration = 500 }) {   
   const [count, setCount] = useState(0);
 
   useEffect(() => {
