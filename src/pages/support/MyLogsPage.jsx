@@ -113,7 +113,7 @@ export default function MyLogsPage() {
       >
         {editRec && (
           <StudentForm
-            initial={editRec}
+            initial={editRec}     
             onSubmit={handleUpdate}
             onCancel={() => setEditRec(null)}
             loading={updating}
